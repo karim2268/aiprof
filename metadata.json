@@ -1,0 +1,6 @@
+{
+  "name": "De la curiosité à la première expérience",
+  "description": "منصة تكوين بيداغوجي تفاعلية لأساتذة المعهد في توظيف الذكاء الاصطناعي: الحصة 1 والحصة 2 (كيفاش نحكي مع الـAI باش يفهمني؟) مع تصدير الموارد إلى Google Sheets",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
