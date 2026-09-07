@@ -11,24 +11,31 @@ import {
   StageIdSession1,
   StageIdSession2,
   StageIdSession3,
+  StageIdSession4,
   TeacherWorksheet,
   PedagogicalDeliverable,
   ParticipantFichePrompt,
   Session2ToolboxItem,
   Session3Worksheet,
   Session3Fiche,
+  Session4ParticipantWorksheet,
+  Session4Deliverable,
 } from './types';
 import {
   WORKSHOP_SESSIONS,
   WORKSHOP_STAGES_SESSION_1,
   WORKSHOP_STAGES_SESSION_2,
   WORKSHOP_STAGES_SESSION_3,
+  WORKSHOP_STAGES_SESSION_4,
   COMPETENCIES,
   COMPETENCIES_SESSION_2,
   COMPETENCIES_SESSION_3,
+  COMPETENCIES_SESSION_4,
   DEFAULT_SESSION_2_TOOLBOX,
   DEFAULT_SESSION_3_WORKSHEET,
   DEFAULT_SESSION_3_FICHE,
+  DEFAULT_SESSION_4_WORKSHEET,
+  DEFAULT_SESSION_4_DELIVERABLE,
 } from './data/workshopData';
 
 import { Header } from './components/Header';
@@ -91,8 +98,8 @@ export default function App() {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false);
 
-  // Active session selector: 'session_1' | 'session_2' | 'session_3'
-  const [currentSession, setCurrentSession] = useState<SessionId>('session_3');
+  // Active session selector: 'session_1' | 'session_2' | 'session_3' | 'session_4'
+  const [currentSession, setCurrentSession] = useState<SessionId>('session_4');
 
   // Modals state
   const [isCompetenciesOpen, setIsCompetenciesOpen] = useState<boolean>(false);
@@ -147,6 +154,26 @@ export default function App() {
   const [s3Worksheet, setS3Worksheet] = useState<Session3Worksheet>(DEFAULT_SESSION_3_WORKSHEET);
   const [s3Fiche, setS3Fiche] = useState<Session3Fiche>(DEFAULT_SESSION_3_FICHE);
   const [s3DeliverableSheetUrl, setS3DeliverableSheetUrl] = useState<string | undefined>(undefined);
+
+  // Session 4 stage navigation
+  const [currentStageSession4, setCurrentStageSession4] = useState<StageIdSession4>('s4_review');
+  const [completedStagesSession4, setCompletedStagesSession4] = useState<Record<StageIdSession4, boolean>>({
+    s4_review: false,
+    s4_raw_prompt: false,
+    s4_graduated_exercise: false,
+    s4_exam_constraints: false,
+    s4_ai_reviewer: false,
+    s4_break: false,
+    s4_participant_fiche: false,
+    s4_exam_builder: false,
+    s4_differentiation_challenge: false,
+    s4_deliverable: false,
+  });
+
+  // Session 4 Data state
+  const [s4Worksheet, setS4Worksheet] = useState<Session4ParticipantWorksheet>(DEFAULT_SESSION_4_WORKSHEET);
+  const [s4Deliverable, setS4Deliverable] = useState<Session4Deliverable>(DEFAULT_SESSION_4_DELIVERABLE);
+  const [s4DeliverableSheetUrl, setS4DeliverableSheetUrl] = useState<string | undefined>(undefined);
 
   // Session 1 interactive worksheet data
   const [worksheet, setWorksheet] = useState<TeacherWorksheet>({
@@ -267,29 +294,37 @@ export default function App() {
       ? WORKSHOP_STAGES_SESSION_1
       : currentSession === 'session_2'
       ? WORKSHOP_STAGES_SESSION_2
-      : WORKSHOP_STAGES_SESSION_3;
+      : currentSession === 'session_3'
+      ? WORKSHOP_STAGES_SESSION_3
+      : WORKSHOP_STAGES_SESSION_4;
 
   const currentStageId =
     currentSession === 'session_1'
       ? currentStageSession1
       : currentSession === 'session_2'
       ? currentStageSession2
-      : currentStageSession3;
+      : currentSession === 'session_3'
+      ? currentStageSession3
+      : currentStageSession4;
 
   const activeCompetencies =
     currentSession === 'session_1'
       ? COMPETENCIES
       : currentSession === 'session_2'
       ? COMPETENCIES_SESSION_2
-      : COMPETENCIES_SESSION_3;
+      : currentSession === 'session_3'
+      ? COMPETENCIES_SESSION_3
+      : COMPETENCIES_SESSION_4;
 
   const handleSelectStage = (stageId: string) => {
     if (currentSession === 'session_1') {
       setCurrentStageSession1(stageId as StageIdSession1);
     } else if (currentSession === 'session_2') {
       setCurrentStageSession2(stageId as StageIdSession2);
-    } else {
+    } else if (currentSession === 'session_3') {
       setCurrentStageSession3(stageId as StageIdSession3);
+    } else {
+      setCurrentStageSession4(stageId as StageIdSession4);
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -312,6 +347,12 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const markCompletedAndNavigateS4 = (completedId: StageIdSession4, nextId: StageIdSession4) => {
+    setCompletedStagesSession4((prev) => ({ ...prev, [completedId]: true }));
+    setCurrentStageSession4(nextId);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleS3WorksheetChange = (updated: Session3Worksheet) => {
     setS3Worksheet(updated);
     setS3Fiche((prev) => ({
@@ -320,6 +361,17 @@ export default function App() {
       niveau: updated.niveau,
       theme: updated.theme,
       duree: updated.duree,
+    }));
+  };
+
+  const handleS4WorksheetChange = (updated: Session4ParticipantWorksheet) => {
+    setS4Worksheet(updated);
+    setS4Deliverable((prev) => ({
+      ...prev,
+      matiere: updated.matiere,
+      niveau: updated.niveau,
+      baremeTotal: updated.baremeTotal,
+      objectifsEvalues: updated.objectifs,
     }));
   };
 
@@ -407,7 +459,9 @@ export default function App() {
             ? (completedStagesSession1 as any)
             : currentSession === 'session_2'
             ? (completedStagesSession2 as any)
-            : (completedStagesSession3 as any)
+            : currentSession === 'session_3'
+            ? (completedStagesSession3 as any)
+            : (completedStagesSession4 as any)
         }
       />
 
@@ -578,7 +632,7 @@ export default function App() {
               />
             )}
           </>
-        ) : (
+        ) : currentSession === 'session_3' ? (
           /* ================= SESSION 3 STAGES ================= */
           <>
             {currentStageSession3 === 's3_review' && (
@@ -655,6 +709,84 @@ export default function App() {
               />
             )}
           </>
+        ) : (
+          /* ================= SESSION 4 STAGES ================= */
+          <>
+            {currentStageSession4 === 's4_review' && (
+              <StageS4Review
+                onComplete={() => markCompletedAndNavigateS4('s4_review', 's4_raw_prompt')}
+              />
+            )}
+
+            {currentStageSession4 === 's4_raw_prompt' && (
+              <StageS4RawPrompt
+                onPrev={() => setCurrentStageSession4('s4_review')}
+                onComplete={() => markCompletedAndNavigateS4('s4_raw_prompt', 's4_graduated_exercise')}
+              />
+            )}
+
+            {currentStageSession4 === 's4_graduated_exercise' && (
+              <StageS4GraduatedExercise
+                onPrev={() => setCurrentStageSession4('s4_raw_prompt')}
+                onComplete={() => markCompletedAndNavigateS4('s4_graduated_exercise', 's4_exam_constraints')}
+              />
+            )}
+
+            {currentStageSession4 === 's4_exam_constraints' && (
+              <StageS4ExamConstraints
+                onPrev={() => setCurrentStageSession4('s4_graduated_exercise')}
+                onComplete={() => markCompletedAndNavigateS4('s4_exam_constraints', 's4_ai_reviewer')}
+              />
+            )}
+
+            {currentStageSession4 === 's4_ai_reviewer' && (
+              <StageS4AiReviewer
+                onPrev={() => setCurrentStageSession4('s4_exam_constraints')}
+                onComplete={() => markCompletedAndNavigateS4('s4_ai_reviewer', 's4_break')}
+              />
+            )}
+
+            {currentStageSession4 === 's4_break' && (
+              <StageS4Break
+                onComplete={() => markCompletedAndNavigateS4('s4_break', 's4_participant_fiche')}
+              />
+            )}
+
+            {currentStageSession4 === 's4_participant_fiche' && (
+              <StageS4ParticipantFiche
+                worksheet={s4Worksheet}
+                onChangeWorksheet={handleS4WorksheetChange}
+                onPrev={() => setCurrentStageSession4('s4_break')}
+                onComplete={() => markCompletedAndNavigateS4('s4_participant_fiche', 's4_exam_builder')}
+              />
+            )}
+
+            {currentStageSession4 === 's4_exam_builder' && (
+              <StageS4ExamBuilder
+                deliverable={s4Deliverable}
+                onChangeDeliverable={setS4Deliverable}
+                onPrev={() => setCurrentStageSession4('s4_participant_fiche')}
+                onComplete={() => markCompletedAndNavigateS4('s4_exam_builder', 's4_differentiation_challenge')}
+              />
+            )}
+
+            {currentStageSession4 === 's4_differentiation_challenge' && (
+              <StageS4DifferentiationChallenge
+                deliverable={s4Deliverable}
+                onPrev={() => setCurrentStageSession4('s4_exam_builder')}
+                onComplete={() => markCompletedAndNavigateS4('s4_differentiation_challenge', 's4_deliverable')}
+              />
+            )}
+
+            {currentStageSession4 === 's4_deliverable' && (
+              <StageS4Deliverable
+                deliverable={s4Deliverable}
+                onOpenSheetsModal={handleTriggerSheetsExport}
+                sheetsExportUrl={s4DeliverableSheetUrl || null}
+                onPrev={() => setCurrentStageSession4('s4_differentiation_challenge')}
+              />
+            )}
+          </>
         )}
       </main>
 
@@ -670,7 +802,7 @@ export default function App() {
       <GoogleSheetsModal
         isOpen={isSheetsModalOpen}
         onClose={() => setIsSheetsModalOpen(false)}
-        sessionNumber={currentSession === 'session_1' ? 1 : currentSession === 'session_2' ? 2 : 3}
+        sessionNumber={currentSession === 'session_1' ? 1 : currentSession === 'session_2' ? 2 : currentSession === 'session_3' ? 3 : 4}
         deliverable={currentSession === 'session_1' ? deliverable : undefined}
         session2Data={
           currentSession === 'session_2'
@@ -682,6 +814,7 @@ export default function App() {
             : undefined
         }
         session3Data={currentSession === 'session_3' ? s3Fiche : undefined}
+        session4Data={currentSession === 'session_4' ? s4Deliverable : undefined}
         accessToken={accessToken}
         userEmail={user?.email || undefined}
         onExportSuccess={(sheetUrl) => {
@@ -689,8 +822,10 @@ export default function App() {
             setDeliverable((prev) => ({ ...prev, sheetUrl }));
           } else if (currentSession === 'session_2') {
             setS2DeliverableSheetUrl(sheetUrl);
-          } else {
+          } else if (currentSession === 'session_3') {
             setS3DeliverableSheetUrl(sheetUrl);
+          } else {
+            setS4DeliverableSheetUrl(sheetUrl);
           }
         }}
       />

@@ -61,6 +61,7 @@ export const StageS4ParticipantFiche: React.FC<StageS4ParticipantFicheProps> = (
   const handleAddVerificationRow = () => {
     const newRow: Session4VerificationRow = {
       id: `q-${Date.now()}`,
+      numero: worksheet.verificationRows.length + 1,
       question: `سؤال جديد ${worksheet.verificationRows.length + 1}`,
       objectif: worksheet.objectifs[0] || 'الهدف الرئيسي',
       difficulte: 'Moyenne',

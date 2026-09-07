@@ -240,12 +240,12 @@ export const StageS4Deliverable: React.FC<StageS4DeliverableProps> = ({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="px-2.5 py-1 rounded-md bg-teal-100 text-teal-800 font-bold text-xs">
-                      {item.role}
+                      {item.category}
                     </span>
                     <h4 className="font-bold text-slate-900 text-sm">{item.title}</h4>
                   </div>
                   <button
-                    onClick={() => handleCopyPrompt(item.id, item.promptTemplate)}
+                    onClick={() => handleCopyPrompt(item.id, item.prompt)}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition"
                   >
                     {copiedPromptId === item.id ? <CheckCheck className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
@@ -254,11 +254,11 @@ export const StageS4Deliverable: React.FC<StageS4DeliverableProps> = ({
                 </div>
 
                 <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 font-mono text-xs text-slate-800 whitespace-pre-line leading-relaxed">
-                  {item.promptTemplate}
+                  {item.prompt}
                 </div>
 
                 <div className="text-[11px] text-emerald-700 font-medium">
-                  🎯 <strong>الهدف والميزة:</strong> {item.pedagogicalGoal}
+                  🎯 <strong>الهدف والميزة:</strong> {item.purpose}
                 </div>
               </div>
             ))}
