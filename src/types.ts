@@ -1,4 +1,4 @@
-export type SessionId = 'session_1' | 'session_2';
+export type SessionId = 'session_1' | 'session_2' | 'session_3' | 'session_4';
 
 export interface SessionMeta {
   id: SessionId;
@@ -42,7 +42,31 @@ export type StageIdSession2 =
   | 's2_battle_misunderstand'
   | 's2_toolbox_deliverable';
 
-export type StageId = StageIdSession1 | StageIdSession2;
+export type StageIdSession3 =
+  | 's3_review'
+  | 's3_raw_prompt'
+  | 's3_step_by_step'
+  | 's3_context_injection'
+  | 's3_break'
+  | 's3_worksheet'
+  | 's3_interactive_builder'
+  | 's3_ai_inspector'
+  | 's3_fiche_conversion'
+  | 's3_deliverable';
+
+export type StageIdSession4 =
+  | 's4_review'
+  | 's4_raw_prompt'
+  | 's4_graduated_exercise'
+  | 's4_exam_constraints'
+  | 's4_ai_reviewer'
+  | 's4_break'
+  | 's4_participant_fiche'
+  | 's4_exam_builder'
+  | 's4_differentiation_challenge'
+  | 's4_deliverable';
+
+export type StageId = StageIdSession1 | StageIdSession2 | StageIdSession3 | StageIdSession4;
 
 export interface StageInfo {
   id: StageId;
@@ -156,3 +180,193 @@ export interface Session2Deliverable {
   sheetUrl?: string;
   spreadsheetId?: string;
 }
+
+// Session 3 Specific Interfaces
+export interface Session3LessonRow {
+  id: string;
+  time: string;
+  phase: string;
+  teacherRole: string;
+  studentRole: string;
+  activity: string;
+  materials: string;
+  evaluation: string;
+}
+
+export interface Session3Worksheet {
+  // 1. Mon cours
+  matiere: string;
+  niveau: string;
+  theme: string;
+  duree: string;
+  // 2. Mes élèves
+  niveauGeneral: 'Faible' | 'Moyen' | 'Bon' | 'Hétérogène';
+  nombreEleves: string | number;
+  difficultesParticulieres: string;
+  // 3. Mes contraintes
+  materielDisponible: string[]; // 'Tableau', 'PC', 'Vidéoprojecteur', 'Smartphone', 'Documents imprimés', 'Internet', 'Autre'
+  autreMateriel?: string;
+  // 4. Ce que je demande à l'IA
+  demandeIA: {
+    objectifs: string;
+    situationDepart: string;
+    activite: string;
+    evaluation: string;
+  };
+  // 5. Je vérifie
+  verification: {
+    objectifsPertinents: boolean;
+    contenuCorrect: boolean;
+    niveauAdapte: boolean;
+    tempsRealiste: boolean;
+    activiteRealisable: boolean;
+    elevesActifs: boolean;
+    evaluationCorrespond: boolean;
+  };
+}
+
+export interface Session3AiInspectorReview {
+  pointsForts: string[];
+  pointsFaibles: string[];
+  elementsIrrealistes: string[];
+  ameliorationsConseillees: string[];
+  teacherDecisions: {
+    accept: string[];
+    reject: string[];
+    justification: string;
+  };
+}
+
+export interface Session3Fiche {
+  id: string;
+  teacherName?: string;
+  matiere: string;
+  niveau: string;
+  theme: string;
+  duree: string;
+  objectifs: string[];
+  prerequis: string[];
+  situationDepart: string;
+  deroulement: Session3LessonRow[];
+  synthese: string;
+  evaluationFinale: string;
+  inspectorReview: Session3AiInspectorReview;
+  betweenSessionsTask: {
+    action: string;
+    questions: string[];
+  };
+  isVerified: boolean;
+  createdAt: string;
+  sheetUrl?: string;
+  spreadsheetId?: string;
+}
+
+// ==========================================
+// SESSION 4: CRÉER DES EXERCICES ET ÉVALUATIONS
+// ==========================================
+
+export interface Session4PromptToolboxItem {
+  id: string;
+  category: string;
+  title: string;
+  prompt: string;
+  purpose: string;
+}
+
+export interface Session4VerificationRow {
+  id?: string;
+  numero: number;
+  question: string;
+  objectif: string;
+  difficulte: 'Facile' | 'Moyenne' | 'Difficile';
+  tempsEstime: string;
+  bareme: string;
+  isAppropriate: boolean;
+}
+
+export interface Session4ParticipantWorksheet {
+  // ① Mes objectifs
+  matiere: string;
+  niveau: string;
+  theme: string;
+  objectifs: string[];
+  // ② Mes contraintes
+  dureeMinutes: number;
+  nombreEleves: string | number;
+  baremeTotal: number;
+  materielAutorise: string;
+  niveauGeneral: 'Faible' | 'Moyen' | 'Bon' | 'Hétérogène';
+  // ③ Type d'évaluation
+  typesChoisis: string[];
+  // ④ Je vérifie le résultat
+  verificationRows: Session4VerificationRow[];
+  // ⑤ AI Review
+  aiReview: {
+    estEquilibre: boolean;
+    questionsAmbigues: string;
+    tempsRealiste: boolean;
+    alignementObjectifs: boolean;
+  };
+}
+
+export interface Session4ExerciseItem {
+  id: string;
+  numero: number;
+  titre: string;
+  type: string; // QCM, Vrai/Faux, Application, Problème, Réflexion, Situation complexe
+  objectif: string;
+  difficulte: 'Facile' | 'Moyenne' | 'Difficile' | 'Progressif';
+  points: number;
+  tempsEstime: string;
+  enonce: string;
+  baremeDetaille: string;
+  corrigeDetaille: string;
+  reponseAttendue?: string;
+  differentiation: {
+    simplifiee: string; // تلميذ يواجه صعوبات
+    standard: string;   // تلميذ عادي
+    defi: string;       // تلميذ متفوق
+  };
+  piegesEtErreursCourantes?: string;
+}
+
+export interface Session4AiReviewerReport {
+  questionsAmbigues: string[];
+  erreursPotentielles: string[];
+  questionsRepetitives: string[];
+  desequilibreDifficulte: string;
+  nonConformiteObjectifs: string[];
+  realismeTemporel: string;
+  recommandations: string[];
+  decisionEnseignant: {
+    modificationsAcceptees: string[];
+    modificationsRejetees: string[];
+    justification: string;
+  };
+}
+
+export interface Session4Deliverable {
+  id: string;
+  teacherName?: string;
+  matiere: string;
+  niveau: string;
+  titreEvaluation: string;
+  duree: string;
+  baremeTotal: number;
+  consignesGenerales: string;
+  objectifsEvalues: string[];
+  exercices: Session4ExerciseItem[];
+  baremeExplication: string;
+  aiReviewReport: Session4AiReviewerReport;
+  missionEntreSessions: {
+    action: string;
+    description: string;
+    etapes: string[];
+  };
+  isVerified: boolean;
+  createdAt: string;
+  sheetUrl?: string;
+  spreadsheetId?: string;
+}
+
+

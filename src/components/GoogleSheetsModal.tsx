@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import { FileSpreadsheet, CheckCircle2, AlertCircle, ExternalLink, X, ShieldCheck } from 'lucide-react';
-import { PedagogicalDeliverable, Session2ToolboxItem } from '../types';
+import { PedagogicalDeliverable, Session2ToolboxItem, Session3Fiche, Session4Deliverable } from '../types';
 import {
   createWorkshopSpreadsheet,
   exportDeliverableToSheet,
   createSession2Spreadsheet,
   exportSession2ToolboxToSheet,
+  createSession3Spreadsheet,
+  exportSession3FicheToSheet,
+  createSession4Spreadsheet,
+  exportSession4DeliverableToSheet,
 } from '../services/sheetsService';
 
 interface GoogleSheetsModalProps {
@@ -18,6 +22,8 @@ interface GoogleSheetsModalProps {
     gradeLevel: string;
     toolbox: Session2ToolboxItem[];
   };
+  session3Data?: Session3Fiche;
+  session4Data?: Session4Deliverable;
   accessToken: string | null;
   userEmail?: string;
   onExportSuccess: (sheetUrl: string) => void;
@@ -29,6 +35,8 @@ export const GoogleSheetsModal: React.FC<GoogleSheetsModalProps> = ({
   sessionNumber = 1,
   deliverable,
   session2Data,
+  session3Data,
+  session4Data,
   accessToken,
   userEmail,
   onExportSuccess,
@@ -49,7 +57,33 @@ export const GoogleSheetsModal: React.FC<GoogleSheetsModalProps> = ({
     setError(null);
 
     try {
-      if (sessionNumber === 2 && session2Data) {
+      if (sessionNumber === 4 && session4Data) {
+        // Session 4 export
+        const sheetInfo = await createSession4Spreadsheet(
+          accessToken,
+          `Évaluation & Exercices IA - الحصة 4 (${session4Data.matiere} - ${session4Data.niveau})`
+        );
+        const finalUrl = await exportSession4DeliverableToSheet(
+          accessToken,
+          sheetInfo.spreadsheetId,
+          session4Data
+        );
+        setSuccessUrl(finalUrl);
+        onExportSuccess(finalUrl);
+      } else if (sessionNumber === 3 && session3Data) {
+        // Session 3 export
+        const sheetInfo = await createSession3Spreadsheet(
+          accessToken,
+          `Fiche de préparation - الحصة 3 (${session3Data.matiere} - ${session3Data.niveau})`
+        );
+        const finalUrl = await exportSession3FicheToSheet(
+          accessToken,
+          sheetInfo.spreadsheetId,
+          session3Data
+        );
+        setSuccessUrl(finalUrl);
+        onExportSuccess(finalUrl);
+      } else if (sessionNumber === 2 && session2Data) {
         // Session 2 export
         const sheetInfo = await createSession2Spreadsheet(
           accessToken,
@@ -86,8 +120,14 @@ export const GoogleSheetsModal: React.FC<GoogleSheetsModalProps> = ({
     }
   };
 
+  const isSession4 = sessionNumber === 4;
+  const isSession3 = sessionNumber === 3;
   const isSession2 = sessionNumber === 2;
-  const fileName = isSession2
+  const fileName = isSession4
+    ? `Évaluation & Exercices IA - الحصة 4 (${session4Data?.matiere || 'المادة'} - ${session4Data?.niveau || 'المستوى'})`
+    : isSession3
+    ? `Fiche de préparation - الحصة 3 (${session3Data?.matiere || 'المادة'} - ${session3Data?.niveau || 'المستوى'})`
+    : isSession2
     ? `Mon AI Teacher Toolbox - الحصة 2 (${session2Data?.subject || 'المادة'})`
     : `De la curiosité à la première expérience - الموارد البيداغوجية (${deliverable?.subject || 'المادة'})`;
 
@@ -101,7 +141,11 @@ export const GoogleSheetsModal: React.FC<GoogleSheetsModalProps> = ({
             </div>
             <div>
               <h3 className="font-bold text-lg text-slate-900">
-                {isSession2
+                {isSession4
+                  ? 'تأكيد حفظ موضوع التقييم وبنك التمارين في Google Sheets'
+                  : isSession3
+                  ? 'تأكيد حفظ جذاذة الحصة البيداغوجية في Google Sheets'
+                  : isSession2
                   ? 'تأكيد حفظ صندوق الأدوات (5 Prompts) في Google Sheets'
                   : 'تأكيد حفظ المورد في Google Sheets'}
               </h3>
@@ -126,7 +170,11 @@ export const GoogleSheetsModal: React.FC<GoogleSheetsModalProps> = ({
             <div>
               <h4 className="text-lg font-bold text-slate-900">تم التصدير بنجاح!</h4>
               <p className="text-sm text-slate-600 mt-1">
-                {isSession2
+                {isSession4
+                  ? 'تم إنشاء جدول التقييم والتمارين (3 أوراق: الموضوع وسلم التنقيط، التمايز البيداغوجي، وتقرير AI Reviewer) في حسابك Google Drive.'
+                  : isSession3
+                  ? 'تم إنشاء جدول الجذاذة البيداغوجية (Fiche de préparation) مع جدول سير الحصة وملاحظات المفتش في حسابك Google Drive.'
+                  : isSession2
                   ? 'تم إنشاء جدول حقيبة الأدوات وحفظ الـ 5 Prompts الشخصية في حسابك Google Drive.'
                   : 'تم إنشاء جدول الموارد البيداغوجية وإدراج بطاقتك بنجاح في حسابك Google Drive.'}
               </p>
@@ -157,9 +205,39 @@ export const GoogleSheetsModal: React.FC<GoogleSheetsModalProps> = ({
             {/* Data summary preview */}
             <div className="border border-slate-200 rounded-xl p-3.5 bg-slate-50 text-xs space-y-2">
               <div className="font-bold text-slate-700">
-                {isSession2 ? 'بيانات صندوق الأدوات المزمع تصديرها:' : 'بيانات المورد المزمع تصديرها:'}
+                {isSession4
+                  ? 'بيانات التقييم وبنك الأسئلة المزمع تصديرها:'
+                  : isSession3
+                  ? 'بيانات جذاذة الحصة المزمع تصديرها:'
+                  : isSession2
+                  ? 'بيانات صندوق الأدوات المزمع تصديرها:'
+                  : 'بيانات المورد المزمع تصديرها:'}
               </div>
-              {isSession2 && session2Data ? (
+              {isSession4 && session4Data ? (
+                <div className="space-y-1.5 text-slate-600">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div><span className="text-slate-400">المادة:</span> {session4Data.matiere}</div>
+                    <div><span className="text-slate-400">المستوى:</span> {session4Data.niveau}</div>
+                    <div><span className="text-slate-400">الموضوع:</span> {session4Data.titreEvaluation}</div>
+                    <div><span className="text-slate-400">المدة والعدد:</span> {session4Data.duree} ({session4Data.baremeTotal} نقطة)</div>
+                  </div>
+                  <div className="pt-1 text-emerald-700 font-semibold">
+                    يتضمن {session4Data.exercices.length} تمارين متدرجة مع سلم التنقيط (Barème) وعناصر الإجابة + مسارات التمايز الثلاثية وتقرير AI Reviewer.
+                  </div>
+                </div>
+              ) : isSession3 && session3Data ? (
+                <div className="space-y-1.5 text-slate-600">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div><span className="text-slate-400">المادة:</span> {session3Data.matiere}</div>
+                    <div><span className="text-slate-400">المستوى:</span> {session3Data.niveau}</div>
+                    <div><span className="text-slate-400">الموضوع:</span> {session3Data.theme}</div>
+                    <div><span className="text-slate-400">المدة:</span> {session3Data.duree}</div>
+                  </div>
+                  <div className="pt-1 text-indigo-700 font-semibold">
+                    يتضمن جدول سير الحصة ({session3Data.deroulement.length} مراحل مفصلة) + ورقة فحص وملاحظات المفتش التربوي.
+                  </div>
+                </div>
+              ) : isSession2 && session2Data ? (
                 <div className="space-y-1.5 text-slate-600">
                   <div className="flex gap-4">
                     <div><span className="text-slate-400">المادة:</span> {session2Data.subject}</div>

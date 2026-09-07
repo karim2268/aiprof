@@ -10,18 +10,25 @@ import {
   SessionId,
   StageIdSession1,
   StageIdSession2,
+  StageIdSession3,
   TeacherWorksheet,
   PedagogicalDeliverable,
   ParticipantFichePrompt,
   Session2ToolboxItem,
+  Session3Worksheet,
+  Session3Fiche,
 } from './types';
 import {
   WORKSHOP_SESSIONS,
   WORKSHOP_STAGES_SESSION_1,
   WORKSHOP_STAGES_SESSION_2,
+  WORKSHOP_STAGES_SESSION_3,
   COMPETENCIES,
   COMPETENCIES_SESSION_2,
+  COMPETENCIES_SESSION_3,
   DEFAULT_SESSION_2_TOOLBOX,
+  DEFAULT_SESSION_3_WORKSHEET,
+  DEFAULT_SESSION_3_FICHE,
 } from './data/workshopData';
 
 import { Header } from './components/Header';
@@ -54,14 +61,38 @@ import { StageS2Dialogue } from './components/stages_s2/StageS2Dialogue';
 import { StageS2BattleMisunderstand } from './components/stages_s2/StageS2BattleMisunderstand';
 import { StageS2ToolboxDeliverable } from './components/stages_s2/StageS2ToolboxDeliverable';
 
+// Session 3 stage components
+import { StageS3Review } from './components/stages_s3/StageS3Review';
+import { StageS3RawPrompt } from './components/stages_s3/StageS3RawPrompt';
+import { StageS3StepByStep } from './components/stages_s3/StageS3StepByStep';
+import { StageS3ContextInjection } from './components/stages_s3/StageS3ContextInjection';
+import { StageS3Break } from './components/stages_s3/StageS3Break';
+import { StageS3Worksheet } from './components/stages_s3/StageS3Worksheet';
+import { StageS3InteractiveBuilder } from './components/stages_s3/StageS3InteractiveBuilder';
+import { StageS3AiInspector } from './components/stages_s3/StageS3AiInspector';
+import { StageS3FicheConversion } from './components/stages_s3/StageS3FicheConversion';
+import { StageS3Deliverable } from './components/stages_s3/StageS3Deliverable';
+
+// Session 4 stage components
+import { StageS4Review } from './components/stages_s4/StageS4Review';
+import { StageS4RawPrompt } from './components/stages_s4/StageS4RawPrompt';
+import { StageS4GraduatedExercise } from './components/stages_s4/StageS4GraduatedExercise';
+import { StageS4ExamConstraints } from './components/stages_s4/StageS4ExamConstraints';
+import { StageS4AiReviewer } from './components/stages_s4/StageS4AiReviewer';
+import { StageS4Break } from './components/stages_s4/StageS4Break';
+import { StageS4ParticipantFiche } from './components/stages_s4/StageS4ParticipantFiche';
+import { StageS4ExamBuilder } from './components/stages_s4/StageS4ExamBuilder';
+import { StageS4DifferentiationChallenge } from './components/stages_s4/StageS4DifferentiationChallenge';
+import { StageS4Deliverable } from './components/stages_s4/StageS4Deliverable';
+
 export default function App() {
   // Auth state
   const [user, setUser] = useState<User | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false);
 
-  // Active session selector: 'session_1' | 'session_2'
-  const [currentSession, setCurrentSession] = useState<SessionId>('session_2');
+  // Active session selector: 'session_1' | 'session_2' | 'session_3'
+  const [currentSession, setCurrentSession] = useState<SessionId>('session_3');
 
   // Modals state
   const [isCompetenciesOpen, setIsCompetenciesOpen] = useState<boolean>(false);
@@ -96,6 +127,26 @@ export default function App() {
     s2_battle_misunderstand: false,
     s2_toolbox_deliverable: false,
   });
+
+  // Session 3 stage navigation
+  const [currentStageSession3, setCurrentStageSession3] = useState<StageIdSession3>('s3_review');
+  const [completedStagesSession3, setCompletedStagesSession3] = useState<Record<StageIdSession3, boolean>>({
+    s3_review: false,
+    s3_raw_prompt: false,
+    s3_step_by_step: false,
+    s3_context_injection: false,
+    s3_break: false,
+    s3_worksheet: false,
+    s3_interactive_builder: false,
+    s3_ai_inspector: false,
+    s3_fiche_conversion: false,
+    s3_deliverable: false,
+  });
+
+  // Session 3 Data state
+  const [s3Worksheet, setS3Worksheet] = useState<Session3Worksheet>(DEFAULT_SESSION_3_WORKSHEET);
+  const [s3Fiche, setS3Fiche] = useState<Session3Fiche>(DEFAULT_SESSION_3_FICHE);
+  const [s3DeliverableSheetUrl, setS3DeliverableSheetUrl] = useState<string | undefined>(undefined);
 
   // Session 1 interactive worksheet data
   const [worksheet, setWorksheet] = useState<TeacherWorksheet>({
@@ -212,19 +263,33 @@ export default function App() {
     WORKSHOP_SESSIONS.find((s) => s.id === currentSession) || WORKSHOP_SESSIONS[0];
 
   const activeStages =
-    currentSession === 'session_1' ? WORKSHOP_STAGES_SESSION_1 : WORKSHOP_STAGES_SESSION_2;
+    currentSession === 'session_1'
+      ? WORKSHOP_STAGES_SESSION_1
+      : currentSession === 'session_2'
+      ? WORKSHOP_STAGES_SESSION_2
+      : WORKSHOP_STAGES_SESSION_3;
 
   const currentStageId =
-    currentSession === 'session_1' ? currentStageSession1 : currentStageSession2;
+    currentSession === 'session_1'
+      ? currentStageSession1
+      : currentSession === 'session_2'
+      ? currentStageSession2
+      : currentStageSession3;
 
   const activeCompetencies =
-    currentSession === 'session_1' ? COMPETENCIES : COMPETENCIES_SESSION_2;
+    currentSession === 'session_1'
+      ? COMPETENCIES
+      : currentSession === 'session_2'
+      ? COMPETENCIES_SESSION_2
+      : COMPETENCIES_SESSION_3;
 
   const handleSelectStage = (stageId: string) => {
     if (currentSession === 'session_1') {
       setCurrentStageSession1(stageId as StageIdSession1);
-    } else {
+    } else if (currentSession === 'session_2') {
       setCurrentStageSession2(stageId as StageIdSession2);
+    } else {
+      setCurrentStageSession3(stageId as StageIdSession3);
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -239,6 +304,23 @@ export default function App() {
     setCompletedStagesSession2((prev) => ({ ...prev, [completedId]: true }));
     setCurrentStageSession2(nextId);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const markCompletedAndNavigateS3 = (completedId: StageIdSession3, nextId: StageIdSession3) => {
+    setCompletedStagesSession3((prev) => ({ ...prev, [completedId]: true }));
+    setCurrentStageSession3(nextId);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleS3WorksheetChange = (updated: Session3Worksheet) => {
+    setS3Worksheet(updated);
+    setS3Fiche((prev) => ({
+      ...prev,
+      matiere: updated.matiere,
+      niveau: updated.niveau,
+      theme: updated.theme,
+      duree: updated.duree,
+    }));
   };
 
   const handleWorksheetUpdate = (updates: Partial<TeacherWorksheet>) => {
@@ -323,7 +405,9 @@ export default function App() {
         completedStages={
           currentSession === 'session_1'
             ? (completedStagesSession1 as any)
-            : (completedStagesSession2 as any)
+            : currentSession === 'session_2'
+            ? (completedStagesSession2 as any)
+            : (completedStagesSession3 as any)
         }
       />
 
@@ -414,7 +498,7 @@ export default function App() {
               />
             )}
           </>
-        ) : (
+        ) : currentSession === 'session_2' ? (
           /* ================= SESSION 2 STAGES ================= */
           <>
             {currentStageSession2 === 's2_review' && (
@@ -494,6 +578,83 @@ export default function App() {
               />
             )}
           </>
+        ) : (
+          /* ================= SESSION 3 STAGES ================= */
+          <>
+            {currentStageSession3 === 's3_review' && (
+              <StageS3Review
+                onComplete={() => markCompletedAndNavigateS3('s3_review', 's3_raw_prompt')}
+              />
+            )}
+
+            {currentStageSession3 === 's3_raw_prompt' && (
+              <StageS3RawPrompt
+                onPrev={() => setCurrentStageSession3('s3_review')}
+                onComplete={() => markCompletedAndNavigateS3('s3_raw_prompt', 's3_step_by_step')}
+              />
+            )}
+
+            {currentStageSession3 === 's3_step_by_step' && (
+              <StageS3StepByStep
+                onPrev={() => setCurrentStageSession3('s3_raw_prompt')}
+                onComplete={() => markCompletedAndNavigateS3('s3_step_by_step', 's3_context_injection')}
+              />
+            )}
+
+            {currentStageSession3 === 's3_context_injection' && (
+              <StageS3ContextInjection
+                onPrev={() => setCurrentStageSession3('s3_step_by_step')}
+                onComplete={() => markCompletedAndNavigateS3('s3_context_injection', 's3_break')}
+              />
+            )}
+
+            {currentStageSession3 === 's3_break' && (
+              <StageS3Break
+                onComplete={() => markCompletedAndNavigateS3('s3_break', 's3_worksheet')}
+              />
+            )}
+
+            {currentStageSession3 === 's3_worksheet' && (
+              <StageS3Worksheet
+                worksheet={s3Worksheet}
+                onChangeWorksheet={handleS3WorksheetChange}
+                onComplete={() => markCompletedAndNavigateS3('s3_worksheet', 's3_interactive_builder')}
+              />
+            )}
+
+            {currentStageSession3 === 's3_interactive_builder' && (
+              <StageS3InteractiveBuilder
+                worksheet={s3Worksheet}
+                fiche={s3Fiche}
+                onChangeFiche={setS3Fiche}
+                onComplete={() => markCompletedAndNavigateS3('s3_interactive_builder', 's3_ai_inspector')}
+              />
+            )}
+
+            {currentStageSession3 === 's3_ai_inspector' && (
+              <StageS3AiInspector
+                fiche={s3Fiche}
+                onChangeFiche={setS3Fiche}
+                onComplete={() => markCompletedAndNavigateS3('s3_ai_inspector', 's3_fiche_conversion')}
+              />
+            )}
+
+            {currentStageSession3 === 's3_fiche_conversion' && (
+              <StageS3FicheConversion
+                fiche={s3Fiche}
+                onChangeFiche={setS3Fiche}
+                onComplete={() => markCompletedAndNavigateS3('s3_fiche_conversion', 's3_deliverable')}
+              />
+            )}
+
+            {currentStageSession3 === 's3_deliverable' && (
+              <StageS3Deliverable
+                fiche={s3Fiche}
+                onOpenSheetsModal={handleTriggerSheetsExport}
+                sheetsExportUrl={s3DeliverableSheetUrl || null}
+              />
+            )}
+          </>
         )}
       </main>
 
@@ -509,7 +670,7 @@ export default function App() {
       <GoogleSheetsModal
         isOpen={isSheetsModalOpen}
         onClose={() => setIsSheetsModalOpen(false)}
-        sessionNumber={currentSession === 'session_1' ? 1 : 2}
+        sessionNumber={currentSession === 'session_1' ? 1 : currentSession === 'session_2' ? 2 : 3}
         deliverable={currentSession === 'session_1' ? deliverable : undefined}
         session2Data={
           currentSession === 'session_2'
@@ -520,13 +681,16 @@ export default function App() {
               }
             : undefined
         }
+        session3Data={currentSession === 'session_3' ? s3Fiche : undefined}
         accessToken={accessToken}
         userEmail={user?.email || undefined}
         onExportSuccess={(sheetUrl) => {
           if (currentSession === 'session_1') {
             setDeliverable((prev) => ({ ...prev, sheetUrl }));
-          } else {
+          } else if (currentSession === 'session_2') {
             setS2DeliverableSheetUrl(sheetUrl);
+          } else {
+            setS3DeliverableSheetUrl(sheetUrl);
           }
         }}
       />
